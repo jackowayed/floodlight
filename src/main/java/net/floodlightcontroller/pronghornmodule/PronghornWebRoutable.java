@@ -11,8 +11,7 @@ public class PronghornWebRoutable implements RestletRoutable {
 	@Override
 	public Restlet getRestlet(Context context) {
 		Router router = new Router(context);
-		//router.attach("/switch/{switch}/barrier/json", PronghornResource.class);
-		router.attach("/test/json", PronghornResource.class);
+		router.attach("/switch/{switch}/barrier/json", PronghornResource.class);
 		return router;
 	}
 

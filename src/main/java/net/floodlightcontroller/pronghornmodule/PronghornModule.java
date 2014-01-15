@@ -86,22 +86,42 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
 			IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
 		// TODO do stuff
         System.out.println(sw + "-->" + msg);
+        try {
+			queue.put(msg);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         return Command.CONTINUE;
 	}
 
 	@Override
 	public boolean sendBarrier(String switchId) {
 		long id = HexString.toLong(switchId);
+		// send barrier request
 		IOFSwitch sw = floodlightProvider.getSwitch(id);
-        OFMessage barrierMsg = floodlightProvider.getOFMessageFactory().getMessage(OFType.BARRIER_REQUEST);
-        barrierMsg.setXid(sw.getNextTransactionId());
+        OFMessage barrierReq = floodlightProvider.getOFMessageFactory().getMessage(OFType.BARRIER_REQUEST);
+        int xid = sw.getNextTransactionId();
+        barrierReq.setXid(xid);
         try {
-			sw.write(barrierMsg, null);
+			sw.write(barrierReq, null);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return false;
 		}
-        return true;
+        
+        // block until barrier reply
+        OFMessage barrierResp;
+        try {
+			barrierResp = queue.take();
+			
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return false;
+		}
+        System.out.println("Returned: " + barrierResp + " Sent: " + xid);
+        return barrierResp != null;// && barrierResp.getXid() == xid;
 	}
 
 }

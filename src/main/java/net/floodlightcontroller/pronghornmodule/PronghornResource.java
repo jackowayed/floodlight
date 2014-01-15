@@ -5,11 +5,6 @@ import org.restlet.resource.Post;
 import org.restlet.resource.ServerResource;
 
 public class PronghornResource extends ServerResource {
-	@Get
-	public boolean test() {
-		return true;
-	}
-	
 	@Post
 	public boolean barrier() {
         IPronghornService prong = (IPronghornService)getContext().getAttributes().get(IPronghornService.class.getCanonicalName());
