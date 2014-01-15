@@ -11,13 +11,14 @@ public class PronghornWebRoutable implements RestletRoutable {
 	@Override
 	public Restlet getRestlet(Context context) {
 		Router router = new Router(context);
-		router.attach("/barrier/json", PronghornResource.class);
+		//router.attach("/switch/{switch}/barrier/json", PronghornResource.class);
+		router.attach("/test/json", PronghornResource.class);
 		return router;
 	}
 
 	@Override
 	public String basePath() {
-		return "/wm/prognhorn";
+		return "/wm/pronghorn";
 	}
 
 }

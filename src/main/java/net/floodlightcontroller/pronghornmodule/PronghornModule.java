@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFType;
@@ -24,6 +26,7 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
 	
 	protected IFloodlightProviderService floodlightProvider;
 	protected IRestApiService restApi;
+	protected BlockingQueue<OFMessage> queue;
 
 	@Override
 	public Collection<Class<? extends IFloodlightService>> getModuleServices() {
@@ -52,6 +55,7 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
 			throws FloodlightModuleException {
 	    floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
 	    restApi = context.getServiceImpl(IRestApiService.class);
+	    queue = new LinkedBlockingQueue<OFMessage>();
 	}
 
 	@Override
@@ -97,7 +101,7 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        return false;
+        return true;
 	}
 
 }
