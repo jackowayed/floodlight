@@ -1224,7 +1224,7 @@ class OFChannelHandler
 
         void processOFBarrierReply(OFChannelHandler h, OFBarrierReply m)
                 throws IOException {
-            // Silently ignore.
+        	h.dispatchMessage(m);
         }
 
         void processOFEchoRequest(OFChannelHandler h, OFEchoRequest m)
