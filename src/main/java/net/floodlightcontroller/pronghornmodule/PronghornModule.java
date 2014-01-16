@@ -6,7 +6,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFType;
@@ -26,7 +28,7 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
 	
 	protected IFloodlightProviderService floodlightProvider;
 	protected IRestApiService restApi;
-	protected BlockingQueue<OFMessage> queue;
+	protected ConcurrentHashMap<IOFSwitch, BlockingQueue<OFMessage>> queues;
 
 	@Override
 	public Collection<Class<? extends IFloodlightService>> getModuleServices() {
@@ -55,7 +57,7 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
 			throws FloodlightModuleException {
 	    floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
 	    restApi = context.getServiceImpl(IRestApiService.class);
-	    queue = new LinkedBlockingQueue<OFMessage>();
+	    queues = new ConcurrentHashMap<IOFSwitch, BlockingQueue<OFMessage>>();
 	}
 
 	@Override
@@ -80,33 +82,43 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
 		// TODO Auto-generated method stub
 		return false;
 	}
+	
+	/* Create queue for sw if does not exist */
+	private void ensureQueueExists(IOFSwitch sw) {
+		if (!queues.contains(sw)) {
+			queues.put(sw, new LinkedBlockingQueue<OFMessage>());
+		}
+	}
 
 	@Override
 	public net.floodlightcontroller.core.IListener.Command receive(
 			IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
 		// TODO do stuff
         System.out.println(sw + "-->" + msg);
-        try {
-			queue.put(msg);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        if (msg.getType() == OFType.BARRIER_REPLY && queues.get(sw) != null) {
+	        try {
+				queues.get(sw).put(msg);;
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
         return Command.CONTINUE;
 	}
 
 	@Override
+	// TODO actually handle the failures better.
 	public boolean sendBarrier(String switchId) {
 		long id = HexString.toLong(switchId);
 		// send barrier request
 		IOFSwitch sw = floodlightProvider.getSwitch(id);
         OFMessage barrierReq = floodlightProvider.getOFMessageFactory().getMessage(OFType.BARRIER_REQUEST);
+        ensureQueueExists(sw);
         int xid = sw.getNextTransactionId();
         barrierReq.setXid(xid);
         try {
 			sw.write(barrierReq, null);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
@@ -114,14 +126,17 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
         // block until barrier reply
         OFMessage barrierResp;
         try {
-			barrierResp = queue.take();
-			
+			barrierResp = queues.get(sw).poll(20, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 			return false;
 		}
+        if (barrierResp == null) {
+        	System.out.println("no response (timed out)");
+        	return false;
+        }
         System.out.println("Returned: " + barrierResp + " Sent: " + xid);
-        return barrierResp != null;// && barrierResp.getXid() == xid;
+        return true;// && barrierResp.getXid() == xid;
 	}
 
 }
