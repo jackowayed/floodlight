@@ -126,7 +126,7 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
         // block until barrier reply
         OFMessage barrierResp;
         try {
-			barrierResp = queues.get(sw).poll(20, TimeUnit.SECONDS);
+			barrierResp = queues.get(sw).poll(1, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 			return false;
