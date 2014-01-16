@@ -9,7 +9,6 @@ public class PronghornResource extends ServerResource {
 	public boolean barrier() {
         IPronghornService prong = (IPronghornService)getContext().getAttributes().get(IPronghornService.class.getCanonicalName());
         String param = (String) getRequestAttributes().get("switch");
-        System.out.println("web");
         return prong.sendBarrier(param);
 	}
 }
