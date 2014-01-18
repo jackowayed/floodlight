@@ -108,7 +108,7 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
 
 	@Override
 	// TODO actually handle the failures better.
-	public boolean sendBarrier(String switchId) {
+	public String sendBarrier(String switchId) {
 		long id = HexString.toLong(switchId);
 		// send barrier request
 		IOFSwitch sw = floodlightProvider.getSwitch(id);
@@ -120,7 +120,7 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
 			sw.write(barrierReq, null);
 		} catch (IOException e) {
 			e.printStackTrace();
-			return false;
+			return "false";
 		}
         
         // block until barrier reply
@@ -129,14 +129,14 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
 			barrierResp = queues.get(sw).poll(1, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-			return false;
+			return "false";
 		}
         if (barrierResp == null) {
         	System.out.println("no response (timed out)");
-        	return false;
+        	return "false";
         }
         System.out.println("Returned: " + barrierResp + " Sent: " + xid);
-        return true;// && barrierResp.getXid() == xid;
+        return "true";// && barrierResp.getXid() == xid;
 	}
 
 }

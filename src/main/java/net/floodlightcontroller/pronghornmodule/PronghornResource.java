@@ -6,7 +6,7 @@ import org.restlet.resource.ServerResource;
 
 public class PronghornResource extends ServerResource {
 	@Post
-	public boolean barrier() {
+	public String barrier() {
         IPronghornService prong = (IPronghornService)getContext().getAttributes().get(IPronghornService.class.getCanonicalName());
         String param = (String) getRequestAttributes().get("switch");
         return prong.sendBarrier(param);
