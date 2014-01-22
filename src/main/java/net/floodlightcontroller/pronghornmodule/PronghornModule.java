@@ -94,7 +94,7 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
 	public net.floodlightcontroller.core.IListener.Command receive(
 			IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
 		// TODO do stuff
-        System.out.println(sw + "-->" + msg);
+        //System.out.println(sw + "-->" + msg);
         if (msg.getType() == OFType.BARRIER_REPLY && queues.get(sw) != null) {
 	        try {
 				queues.get(sw).put(msg);;
@@ -135,7 +135,7 @@ public class PronghornModule implements IFloodlightModule, IOFMessageListener, I
         	System.out.println("no response (timed out)");
         	return "false";
         }
-        System.out.println("Returned: " + barrierResp + " Sent: " + xid);
+        //System.out.println("Returned: " + barrierResp + " Sent: " + xid);
         return "true";// && barrierResp.getXid() == xid;
 	}
 
