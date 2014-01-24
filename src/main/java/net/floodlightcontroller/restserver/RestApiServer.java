@@ -52,7 +52,8 @@ public class RestApiServer
     protected List<RestletRoutable> restlets;
     protected FloodlightModuleContext fmlContext;
     protected String restHost = null;
-    protected int restPort = 8080;
+    //protected int restPort = 8080;
+    protected int restPort = 8081;
     
     // ***********
     // Application
