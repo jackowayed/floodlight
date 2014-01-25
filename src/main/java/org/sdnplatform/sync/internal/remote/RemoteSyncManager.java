@@ -93,7 +93,7 @@ public class RemoteSyncManager extends AbstractSyncManager {
     /**
      * Port to connect to
      */
-    protected int port = 6642;
+    protected int port = 16642;
     
     protected AuthScheme authScheme;
     protected String keyStorePath;

@@ -43,7 +43,7 @@ public class FallbackCCProvider implements IClusterConfigProvider {
         }
         return new ClusterConfig(Collections.
                                  singletonList(new Node("localhost",
-                                                        6642,
+                                                        16642,
                                                         Short.MAX_VALUE,
                                                         Short.MAX_VALUE)),
                                                         Short.MAX_VALUE,

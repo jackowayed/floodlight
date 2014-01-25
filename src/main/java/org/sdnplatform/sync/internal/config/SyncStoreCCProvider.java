@@ -240,7 +240,7 @@ public class SyncStoreCCProvider
         if (hostname == null) 
             hostname = getLocalHostname();
 
-        int port = 6642;
+        int port = 16642;
         String portStr = unsyncStoreClient.getValue(LOCAL_NODE_PORT);
         if (portStr != null) {
             port = Integer.parseInt(portStr);
@@ -343,7 +343,7 @@ public class SyncStoreCCProvider
                     ArrayList<HostAndPort> hosts = new ArrayList<HostAndPort>();
                     for (String s : seeds) {
                         hosts.add(HostAndPort.fromString(s).
-                                      withDefaultPort(6642));
+                                      withDefaultPort(16642));
                     }
                     Bootstrap bs = new Bootstrap(syncManager,
                                                  authScheme,

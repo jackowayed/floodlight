@@ -316,12 +316,12 @@ public class JavaDBStorageEngine implements IStorageEngine<ByteArray, byte[]> {
         EmbeddedConnectionPoolDataSource40 ds = 
                 new EmbeddedConnectionPoolDataSource40();
         if (memory) {
-            ds.setDatabaseName("memory:SyncDB");                
+            ds.setDatabaseName("memory:SyncDBDiffPorts");                
         } else {
-            String path = "SyncDB";
+            String path = "SyncDBDiffPorts";
             if (dbPath != null) {
                 File f = new File(dbPath);
-                f = new File(dbPath,"SyncDB");
+                f = new File(dbPath,"SyncDBDiffPorts");
                 path = f.getAbsolutePath();
             }            
 

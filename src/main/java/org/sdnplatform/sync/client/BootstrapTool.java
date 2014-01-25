@@ -28,7 +28,7 @@ public class BootstrapTool extends SyncClientBase {
         
         @Option(name="--seeds", aliases="-s",
                 usage="Comma-separated list of seeds specified as " + 
-                      "ipaddr:port, such as 192.168.5.2:6642,192.168.6.2:6642")
+                      "ipaddr:port, such as 192.168.5.2:16642,192.168.6.2:16642")
         protected String seeds;
         
         @Option(name="--localNodeDomain", aliases="-d",

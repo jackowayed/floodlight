@@ -50,7 +50,7 @@ public abstract class SyncClientBase {
     
         @Option(name="--port", aliases="-p", 
                 usage="Server port (default 6642)")
-        protected int port = 6642;
+        protected int port = 16642;
         
         @Override
         protected void init(String[] args) {

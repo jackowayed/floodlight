@@ -33,7 +33,7 @@ public class JythonDebugInterface implements IFloodlightModule {
     protected static Logger log = LoggerFactory.getLogger(JythonDebugInterface.class);
     protected JythonServer debug_server;
     protected String jythonHost = null;
-    protected int jythonPort = 6655;
+    protected int jythonPort = 6656;
     
     @Override
     public Collection<Class<? extends IFloodlightService>> getModuleServices() {
