@@ -28,6 +28,8 @@ import net.floodlightcontroller.restserver.IRestApiService;
 /**
  * Host for the Floodlight main method
  * @author alexreimers
+
+   Minor changes and extensions by bmistree.
  */
 public class Main {
 
@@ -49,17 +51,29 @@ public class Main {
             parser.printUsage(System.out);
             System.exit(1);
         }
-        
+
+        IFloodlightProviderService controller =
+            get_controller(settings.getModuleFile());
+        // This call blocks, it has to be the last line in the main
+        controller.run();
+    }
+
+    public static IFloodlightProviderService get_controller(
+        String settings_filename) throws FloodlightModuleException
+    {
         // Load modules
         FloodlightModuleLoader fml = new FloodlightModuleLoader();
-        IFloodlightModuleContext moduleContext = fml.loadModulesFromConfig(settings.getModuleFile());
+        IFloodlightModuleContext moduleContext =
+            fml.loadModulesFromConfig(settings_filename);
+        
         // Run REST server
-        IRestApiService restApi = moduleContext.getServiceImpl(IRestApiService.class);
+        IRestApiService restApi =
+            moduleContext.getServiceImpl(IRestApiService.class);
         restApi.run();
         // Run the main floodlight module
         IFloodlightProviderService controller =
                 moduleContext.getServiceImpl(IFloodlightProviderService.class);
-        // This call blocks, it has to be the last line in the main
-        controller.run();
+
+        return controller;
     }
 }
