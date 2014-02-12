@@ -114,9 +114,42 @@ public class PronghornModule
         return Command.CONTINUE;
     }
 
+    
     @Override
+    public String sendBarrier(String switch_id)
+    {
+        if (send_barrier(switch_id))
+            return "true";
+        return "false";
+    }
+
+
+    
+    @Override
+    public int add_entry (
+        PronghornFlowTableEntry entry,IPronghornFlowtableCallback cb)
+    {
+        // FIXME: Must fill in
+        return -1;
+    }
+    @Override
+    public int remove_entry (
+        PronghornFlowTableEntry entry,IPronghornFlowtableCallback cb)
+    {
+        // FIXME: Must fill in
+        return -1;
+    }
+    @Override
+    public void barrier (
+        String switch_id,IPronghornBarrierCallback cb)
+    {
+        // FIXME: Must fill in
+    }
+    
+    
     // TODO actually handle the failures better.
-    public String sendBarrier(String switchId) {
+    private boolean send_barrier(String switchId)
+    {
         long id = HexString.toLong(switchId);
         // send barrier request
         IOFSwitch sw = floodlightProvider.getSwitch(id);
@@ -130,7 +163,7 @@ public class PronghornModule
             sw.write(barrierReq, null);
         } catch (IOException e) {
             e.printStackTrace();
-            return "false";
+            return false;
         }
         
         // block until barrier reply
@@ -139,12 +172,12 @@ public class PronghornModule
             barrierResp = queues.get(sw).poll(1, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            return "false";
+            return false;
         }
         if (barrierResp == null) {
             System.out.println("no response (timed out)");
-            return "false";
+            return false;
         }
-        return "true";// && barrierResp.getXid() == xid;
+        return true;
     }
 }
