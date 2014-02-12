@@ -11,9 +11,7 @@ net.floodlightcontroller.staticflowentry.StaticFlowEntryPusher
 net.floodlightcontroller.perfmon.PktInProcessingTime
 net.floodlightcontroller.perfmon.NullPktInProcessingTime
 net.floodlightcontroller.restserver.RestApiServer
-net.floodlightcontroller.learningswitch.LearningSwitch
 net.floodlightcontroller.hub.Hub
-net.floodlightcontroller.jython.JythonDebugInterface
 net.floodlightcontroller.counter.CounterStore
 net.floodlightcontroller.counter.NullCounterStore
 net.floodlightcontroller.debugcounter.DebugCounter
@@ -21,7 +19,6 @@ net.floodlightcontroller.debugevent.DebugEvent
 net.floodlightcontroller.threadpool.ThreadPool
 net.floodlightcontroller.ui.web.StaticWebRoutable
 net.floodlightcontroller.virtualnetwork.VirtualNetworkFilter
-net.floodlightcontroller.firewall.Firewall
 net.floodlightcontroller.loadbalancer.LoadBalancer
 org.sdnplatform.sync.internal.SyncManager
 org.sdnplatform.sync.internal.SyncTorture
