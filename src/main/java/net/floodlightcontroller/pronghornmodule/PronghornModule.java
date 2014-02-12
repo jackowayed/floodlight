@@ -9,9 +9,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFType;
+import org.openflow.protocol.OFError;
 import org.openflow.util.HexString;
 
 import net.floodlightcontroller.core.FloodlightContext;
@@ -142,13 +144,29 @@ public class PronghornModule
     @Override
     public String sendBarrier(String switch_id)
     {
-        if (send_barrier(switch_id,null))
+        RESTBarrierCallback cb = new RESTBarrierCallback();
+        if (send_barrier(switch_id,cb) &&
+            (! cb.had_error.get()))
             return "true";
         return "false";
     }
 
+    private class RESTBarrierCallback implements IPronghornBarrierCallback
+    {
+        public final AtomicBoolean had_error = new AtomicBoolean (false);
+        
+        @Override
+        public void command_failure(int id)
+        {
+            had_error.set(true);
+        }
 
-    
+        @Override
+        public void barrier_success(){}
+        @Override
+        public void barrier_failure(){}
+    }
+
     @Override
     public int add_entry (
         PronghornFlowTableEntry entry)
@@ -168,14 +186,25 @@ public class PronghornModule
         // FIXME: Must fill in
         return -1;
     }
+    
     @Override
     public void barrier (
         String switch_id,IPronghornBarrierCallback cb)
     {
-        // FIXME: Must fill in
+        if (send_barrier(switch_id,cb))
+            cb.barrier_success();
+        else
+            cb.barrier_failure();
     }
 
-    // TODO actually handle the failures better.
+    /**
+       @returns {boolean} --- True if the barrier completes before
+       timing out.  False if it does not.  Note that a transaction may
+       have failed even if this method returns true: in particular,
+       this can happen if one of the command messages associated with
+       the transaction returns an error.  These errors get passed back
+       through cb.
+     */
     private boolean send_barrier(String switchId,IPronghornBarrierCallback cb)
     {
         long id = HexString.toLong(switchId);
@@ -187,17 +216,22 @@ public class PronghornModule
         ensureQueueExists(sw);
         int xid = sw.getNextTransactionId();
         barrierReq.setXid(xid);
-        try {
+        try
+        {
             sw.write(barrierReq, null);
-        } catch (IOException e) {
-            e.printStackTrace();
+        }
+        catch (IOException e)
+        {
+            log.error(
+                "IOException on writing to switch.",e.getMessage());
+            assert(false);
             return false;
         }
         
-        // block until barrier reply
-        OFMessage queue_resp = null;
+        // block until barrier reply or timeout.
         while (true)
         {
+            OFMessage queue_resp = null;
             try
             {
                 queue_resp = queues.get(sw).poll(1, TimeUnit.SECONDS);
@@ -219,10 +253,13 @@ public class PronghornModule
                 return true;
             else if (queue_resp.getType() == OFType.ERROR)
             {
-                log.error(
-                    "Recived error openflow message.  Still must process");
-                assert(false);
-                return false;
+                // if we have a callback, then tell it that one of the
+                // changes failed
+                if (cb != null)
+                {
+                    int err_xid = queue_resp.getXid();
+                    cb.command_failure(err_xid);
+                }
             }
             // DEBUG
             else
