@@ -2,6 +2,7 @@ package net.floodlightcontroller.pronghornmodule;
 
 public interface IPronghornBarrierCallback
 {
-    void success();
-    void failure();
+    public void command_failure(int id);
+    public void barrier_success();
+    public void barrier_failure();
 }

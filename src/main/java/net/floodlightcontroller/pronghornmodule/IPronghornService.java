@@ -9,9 +9,9 @@ public interface IPronghornService extends IFloodlightService {
        Returns unique id associated with 
      */
     public int add_entry (
-        PronghornFlowTableEntry entry,IPronghornFlowtableCallback cb);
+        PronghornFlowTableEntry entry);
     public int remove_entry (
-        PronghornFlowTableEntry entry,IPronghornFlowtableCallback cb);
+        PronghornFlowTableEntry entry);
     public void barrier (
         String switch_id,IPronghornBarrierCallback cb);
     

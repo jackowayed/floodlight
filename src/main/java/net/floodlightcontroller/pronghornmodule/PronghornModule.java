@@ -23,11 +23,15 @@ import net.floodlightcontroller.core.module.FloodlightModuleException;
 import net.floodlightcontroller.core.module.IFloodlightModule;
 import net.floodlightcontroller.core.module.IFloodlightService;
 import net.floodlightcontroller.restserver.IRestApiService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class PronghornModule
     implements IFloodlightModule, IOFMessageListener, IPronghornService
 {
-        
+    protected static final Logger log = LoggerFactory.getLogger(PronghornModule.class);
+            
     protected IFloodlightProviderService floodlightProvider;
     protected IRestApiService restApi;
     protected ConcurrentHashMap<IOFSwitch, BlockingQueue<OFMessage>> queues;
@@ -71,6 +75,7 @@ public class PronghornModule
     @Override
     public void startUp(FloodlightModuleContext context) {
         floodlightProvider.addOFMessageListener(OFType.BARRIER_REPLY, this);
+        floodlightProvider.addOFMessageListener(OFType.ERROR, this);
         restApi.addRestletRoutable(new PronghornWebRoutable());
     }
     
@@ -100,17 +105,36 @@ public class PronghornModule
 
     @Override
     public net.floodlightcontroller.core.IListener.Command receive(
-        IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
-        // TODO do stuff
-        //System.out.println(sw + "-->" + msg);
-        if (msg.getType() == OFType.BARRIER_REPLY && queues.get(sw) != null) {
-            try {
-                queues.get(sw).put(msg);;
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+        IOFSwitch sw, OFMessage msg, FloodlightContext cntx)
+    {
+        if (queues.get(sw) != null)
+        {
+            if ((msg.getType() == OFType.BARRIER_REPLY) ||
+                (msg.getType() == OFType.ERROR))
+            {
+                try
+                {
+                    queues.get(sw).put(msg);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                    log.error(
+                        "Interrupted excpetion while putting",e.getMessage());
+                    assert(false);
+                }
             }
+            // DEBUG
+            else
+            {
+                // only expecting messages for errors and barrier
+                // replies
+                log.error("Received unknown message type in pronghorn.");
+                assert(false);
+            }
+            // END DEBUG
         }
+        
         return Command.CONTINUE;
     }
 
@@ -118,7 +142,7 @@ public class PronghornModule
     @Override
     public String sendBarrier(String switch_id)
     {
-        if (send_barrier(switch_id))
+        if (send_barrier(switch_id,null))
             return "true";
         return "false";
     }
@@ -127,15 +151,20 @@ public class PronghornModule
     
     @Override
     public int add_entry (
-        PronghornFlowTableEntry entry,IPronghornFlowtableCallback cb)
+        PronghornFlowTableEntry entry)
     {
+        log.error("Must fill in add_entry method");
+        assert(false);
+        
         // FIXME: Must fill in
         return -1;
     }
     @Override
     public int remove_entry (
-        PronghornFlowTableEntry entry,IPronghornFlowtableCallback cb)
+        PronghornFlowTableEntry entry)
     {
+        log.error("Must fill in remove_entry method");
+        assert(false);
         // FIXME: Must fill in
         return -1;
     }
@@ -145,10 +174,9 @@ public class PronghornModule
     {
         // FIXME: Must fill in
     }
-    
-    
+
     // TODO actually handle the failures better.
-    private boolean send_barrier(String switchId)
+    private boolean send_barrier(String switchId,IPronghornBarrierCallback cb)
     {
         long id = HexString.toLong(switchId);
         // send barrier request
@@ -167,17 +195,43 @@ public class PronghornModule
         }
         
         // block until barrier reply
-        OFMessage barrierResp;
-        try {
-            barrierResp = queues.get(sw).poll(1, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return false;
+        OFMessage queue_resp = null;
+        while (true)
+        {
+            try
+            {
+                queue_resp = queues.get(sw).poll(1, TimeUnit.SECONDS);
+            }
+            catch (InterruptedException e)
+            {
+                log.error(
+                    "InterruptedException on queue.",e.getMessage());
+                assert(false);
+                return false;
+            }
+
+            // timed out waiting for response
+            if (queue_resp == null)
+                return false;
+
+            // check if the return message is for barrier or for error
+            if (queue_resp.getType() == OFType.BARRIER_REPLY)
+                return true;
+            else if (queue_resp.getType() == OFType.ERROR)
+            {
+                log.error(
+                    "Recived error openflow message.  Still must process");
+                assert(false);
+                return false;
+            }
+            // DEBUG
+            else
+            {
+                log.error("Unknown openflow message type.");
+                assert(false);
+                return false;
+            }
+            // END DEBUG
         }
-        if (barrierResp == null) {
-            System.out.println("no response (timed out)");
-            return false;
-        }
-        return true;
     }
 }
