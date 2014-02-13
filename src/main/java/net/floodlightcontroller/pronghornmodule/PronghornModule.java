@@ -10,8 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.io.IOException;
 
 import org.openflow.protocol.OFMessage;
+import org.openflow.protocol.OFFlowMod;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.OFError;
 import org.openflow.util.HexString;
@@ -25,6 +27,8 @@ import net.floodlightcontroller.core.module.FloodlightModuleException;
 import net.floodlightcontroller.core.module.IFloodlightModule;
 import net.floodlightcontroller.core.module.IFloodlightService;
 import net.floodlightcontroller.restserver.IRestApiService;
+import net.floodlightcontroller.staticflowentry.IStaticFlowEntryPusherService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +40,7 @@ public class PronghornModule
             
     protected IFloodlightProviderService floodlightProvider;
     protected IRestApiService restApi;
+    protected IStaticFlowEntryPusherService flow_entry_pusher;
     protected ConcurrentHashMap<IOFSwitch, BlockingQueue<OFMessage>> queues;
 
     @Override
@@ -63,6 +68,7 @@ public class PronghornModule
             new ArrayList<Class<? extends IFloodlightService>>();
         l.add(IFloodlightProviderService.class);
         l.add(IRestApiService.class);
+        l.add(IStaticFlowEntryPusherService.class);
         return l;
     }
 
@@ -71,6 +77,8 @@ public class PronghornModule
         throws FloodlightModuleException {
         floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
         restApi = context.getServiceImpl(IRestApiService.class);
+        flow_entry_pusher =
+            context.getServiceImpl(IStaticFlowEntryPusherService.class);
         queues = new ConcurrentHashMap<IOFSwitch, BlockingQueue<OFMessage>>();
     }
 
@@ -145,9 +153,13 @@ public class PronghornModule
     public String sendBarrier(String switch_id)
     {
         RESTBarrierCallback cb = new RESTBarrierCallback();
-        if (send_barrier(switch_id,cb) &&
-            (! cb.had_error.get()))
-            return "true";
+        try {
+            if (send_barrier(switch_id,cb) &&
+                (! cb.had_error.get()))
+                return "true";
+        } catch (IOException ex) {
+            // ignore IOException: returning false anyways.
+        }
         return "false";
     }
 
@@ -167,19 +179,29 @@ public class PronghornModule
         public void barrier_failure(){}
     }
 
+
     @Override
     public int add_entry (
-        PronghornFlowTableEntry entry)
+        PronghornFlowTableEntry entry) throws IOException
     {
-        log.error("Must fill in add_entry method");
-        assert(false);
-        
-        // FIXME: Must fill in
-        return -1;
+        long id = HexString.toLong(entry.switch_id);
+        // send barrier request
+        IOFSwitch sw = floodlightProvider.getSwitch(id);
+        ensureQueueExists(sw);
+
+        int xid = sw.getNextTransactionId();
+        OFFlowMod flow_mod_msg =
+            (OFFlowMod)floodlightProvider.getOFMessageFactory().getMessage(OFType.FLOW_MOD);
+        flow_mod_msg.setXid(xid);
+        flow_entry_pusher.parseActionString(
+            flow_mod_msg, entry.actions, log);
+
+        sw.write(flow_mod_msg, null);
+        return xid;
     }
     @Override
     public int remove_entry (
-        PronghornFlowTableEntry entry)
+        PronghornFlowTableEntry entry) throws IOException
     {
         log.error("Must fill in remove_entry method");
         assert(false);
@@ -189,7 +211,7 @@ public class PronghornModule
     
     @Override
     public void barrier (
-        String switch_id,IPronghornBarrierCallback cb)
+        String switch_id,IPronghornBarrierCallback cb) throws IOException
     {
         if (send_barrier(switch_id,cb))
             cb.barrier_success();
@@ -206,6 +228,7 @@ public class PronghornModule
        through cb.
      */
     private boolean send_barrier(String switchId,IPronghornBarrierCallback cb)
+        throws IOException
     {
         long id = HexString.toLong(switchId);
         // send barrier request
@@ -216,17 +239,7 @@ public class PronghornModule
         ensureQueueExists(sw);
         int xid = sw.getNextTransactionId();
         barrierReq.setXid(xid);
-        try
-        {
-            sw.write(barrierReq, null);
-        }
-        catch (IOException e)
-        {
-            log.error(
-                "IOException on writing to switch.",e.getMessage());
-            assert(false);
-            return false;
-        }
+        sw.write(barrierReq, null);
         
         // block until barrier reply or timeout.
         while (true)
