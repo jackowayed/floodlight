@@ -422,7 +422,6 @@ public class StaticFlowEntries {
             }
         }
         log.debug("action {}", actions);
-        
         flowMod.setActions(actions);
         flowMod.setLengthU(OFFlowMod.MINIMUM_LENGTH + actionsLength);
     } 

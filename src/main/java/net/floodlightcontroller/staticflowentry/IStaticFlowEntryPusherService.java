@@ -17,7 +17,7 @@
 package net.floodlightcontroller.staticflowentry;
 
 import java.util.Map;
-
+import org.slf4j.Logger;
 import org.openflow.protocol.OFFlowMod;
 
 import net.floodlightcontroller.core.module.IFloodlightService;
@@ -57,4 +57,12 @@ public interface IStaticFlowEntryPusherService extends IFloodlightService {
      * Gets a list of flows by switch
      */
     public Map<String, OFFlowMod> getFlows(String dpid);
+
+    /**
+     * Parses an action string into a flowmod message.
+     */
+    public void parseActionString(
+        OFFlowMod flowMod, String actionstr, Logger log);
+            
 }
+

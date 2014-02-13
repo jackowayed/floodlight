@@ -338,6 +338,13 @@ public class StaticFlowEntryPusher
     }
 
     @Override
+    public void parseActionString(
+        OFFlowMod flowMod, String actionstr, Logger log)
+    {
+        StaticFlowEntries.parseActionString(flowMod,actionstr,log);
+    }
+    
+    @Override
     public void switchAdded(long switchId) {
         log.debug("Switch {} connected; processing its static entries",
                   HexString.toHexString(switchId));
