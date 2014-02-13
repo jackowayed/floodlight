@@ -63,6 +63,8 @@ public interface IStaticFlowEntryPusherService extends IFloodlightService {
      */
     public void parseActionString(
         OFFlowMod flowMod, String actionstr, Logger log);
+
+    public void initDefaultFlowMod(OFFlowMod fm, String entryName);
             
 }
 

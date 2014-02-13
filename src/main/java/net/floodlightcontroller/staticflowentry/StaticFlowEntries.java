@@ -89,7 +89,7 @@ public class StaticFlowEntries {
 
         return AppCookie.makeCookie(StaticFlowEntryPusher.STATIC_FLOW_APP_ID, flowHash);
     }
-    
+
     /**
      * Sets defaults for an OFFlowMod
      * @param fm The OFFlowMod to set defaults for

@@ -246,6 +246,12 @@ public class StaticFlowEntryPusher
         return entries;
     }
 
+    @Override
+    public void initDefaultFlowMod(OFFlowMod fm, String entryName)
+    {
+        StaticFlowEntries.initDefaultFlowMod(fm, entryName);
+    }
+    
     /**
      * Take a single row, turn it into a flowMod, and add it to the
      * entries{$dpid}.{$entryName}=FlowMod

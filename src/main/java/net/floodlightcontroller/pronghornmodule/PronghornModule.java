@@ -195,7 +195,7 @@ public class PronghornModule
         flow_mod_msg.setXid(xid);
         flow_entry_pusher.parseActionString(
             flow_mod_msg, entry.actions, log);
-
+        
         sw.write(flow_mod_msg, null);
         return xid;
     }
