@@ -11,10 +11,10 @@ public interface IPronghornService extends IFloodlightService {
     /**
        Returns unique id associated with 
      */
-    public int add_entry (
-        PronghornFlowTableEntry entry) throws IOException;
-    public int remove_entry (
-        PronghornFlowTableEntry entry) throws IOException;
+    public int add_entry (PronghornFlowTableEntry entry)
+        throws IOException, IllegalArgumentException;
+    public int remove_entry (PronghornFlowTableEntry entry) 
+        throws IOException, IllegalArgumentException;
     public void barrier (
         String switch_id,IPronghornBarrierCallback cb) throws IOException;
     

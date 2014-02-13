@@ -181,33 +181,36 @@ public class PronghornModule
 
 
     @Override
-    public int add_entry (
-        PronghornFlowTableEntry entry) throws IOException
+    public int add_entry (PronghornFlowTableEntry entry) 
+        throws IOException, IllegalArgumentException        
+    {
+        return send_flow_mod_msg(entry,true);
+    }
+    
+    @Override
+    public int remove_entry (PronghornFlowTableEntry entry)
+        throws IOException, IllegalArgumentException
+    {
+        return send_flow_mod_msg(entry,false);
+    }
+
+    private int send_flow_mod_msg (
+        PronghornFlowTableEntry entry, boolean add_msg)
+        throws IOException, IllegalArgumentException
+        
     {
         long id = HexString.toLong(entry.switch_id);
-        // send barrier request
         IOFSwitch sw = floodlightProvider.getSwitch(id);
         ensureQueueExists(sw);
 
         int xid = sw.getNextTransactionId();
         OFFlowMod flow_mod_msg =
-            (OFFlowMod)floodlightProvider.getOFMessageFactory().getMessage(OFType.FLOW_MOD);
-        flow_mod_msg.setXid(xid);
-        flow_entry_pusher.parseActionString(
-            flow_mod_msg, entry.actions, log);
-        
+            entry.produce_flow_mod_msg(
+                xid,floodlightProvider,flow_entry_pusher,log,add_msg);
         sw.write(flow_mod_msg, null);
         return xid;
     }
-    @Override
-    public int remove_entry (
-        PronghornFlowTableEntry entry) throws IOException
-    {
-        log.error("Must fill in remove_entry method");
-        assert(false);
-        // FIXME: Must fill in
-        return -1;
-    }
+    
     
     @Override
     public void barrier (

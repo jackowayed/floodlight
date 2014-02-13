@@ -106,6 +106,7 @@ public class OFFlowMod extends OFMessage implements OFActionFactoryAware, Clonea
         return this.command;
     }
 
+
     /**
      * Set command
      * @param command
